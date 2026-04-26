@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KIRA — Your Living Digital Companion</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="loader" id="loader"><div class="loader-logo">Kira</div><div class="loader-sub">Waking your companion...</div></div>
+<div id="scene"></div>
+<canvas id="pfx"></canvas>
+<canvas id="actfx"></canvas>
+<div id="app">
+
+<!-- AUTH -->
+<div class="screen" id="screen-auth">
+  <div class="auth-wrap">
+    <div class="auth-logo">Kira</div>
+    <div class="auth-sub">Your Living Digital Companion</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-signin" onclick="switchAuthTab('signin')">Sign In</div>
+      <div class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-form" id="form-signin">
+        <div class="ig"><label class="il">Email</label><input class="inp" id="si-email" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+        <div class="ig"><label class="il">Password</label><input class="inp" id="si-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+        <button class="btn btn-p" onclick="doSignIn()" style="width:100%;font-size:19px;padding:17px">✦ Sign In</button>
+        <div class="auth-switch">No account? <span onclick="switchAuthTab('signup')">Create one →</span></div>
+      </div>
+      <div class="auth-form hidden" id="form-signup">
+        <div class="ig"><label class="il">Your Name</label><input class="inp" id="su-name" placeholder="What shall Kira call you?" maxlength="22"></div>
+        <div class="ig"><label class="il">Choose Your Avatar</label><div class="avatar-grid" id="av-grid"></div></div>
+        <div class="ig"><label class="il">Email</label><input class="inp" id="su-email" type="email" placeholder="your@email.com"></div>
+        <div class="ig"><label class="il">Password</label><input class="inp" id="su-pass" type="password" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')doSignUp()"></div>
+        <button class="btn btn-p" onclick="doSignUp()" style="width:100%;font-size:19px;padding:17px">✦ Create Account</button>
+        <div class="auth-switch">Have an account? <span onclick="switchAuthTab('signin')">Sign In →</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DESIGN -->
+<div class="screen" id="screen-design">
+  <div style="text-align:center"><div class="design-lbl">Create Your Companion</div></div>
+  <div class="step-row"><div class="sdot active" id="d0"></div><div class="sdot" id="d1"></div><div class="sdot" id="d2"></div><div class="sdot" id="d3"></div></div>
+  <div class="dstep active" id="ds0">
+    <div><div class="stitle">Choose Your Spirit</div><div class="ssub">Each being carries ancient magic — which calls to you?</div></div>
+    <div class="ptgrid" id="ptgrid"></div>
+    <div class="ptlore" id="ptlore">Choose a companion to see their story...</div>
+    <button class="btn btn-p" onclick="goStep(1)">Continue ›</button>
+  </div>
+  <div class="dstep" id="ds1">
+    <div><div class="stitle">Name & Essence</div><div class="ssub">Shape your companion's identity and world</div></div>
+    <div class="d2col">
+      <div class="ig"><label class="il">Companion Name</label><input class="inp" id="pname" placeholder="Give them a name..." maxlength="16"></div>
+      <div class="ig"><label class="il">Spirit Word</label><input class="inp" id="spiritword" placeholder="e.g. Brave, Radiant" maxlength="14"></div>
+    </div>
+    <div class="d2col">
+      <div class="ig"><label class="il">Home World</label><select class="inp" id="homeworld"><option value="Enchanted Forest">🌲 Enchanted Forest</option><option value="Crystal Ocean">🌊 Crystal Ocean</option><option value="Starlit Galaxy">🌌 Starlit Galaxy</option><option value="Ancient Mountains">⛰️ Ancient Mountains</option><option value="Neon City">🌆 Neon City</option><option value="Mystic Desert">🏜️ Mystic Desert</option></select></div>
+      <div class="ig"><label class="il">Born At</label><select class="inp" id="borntime"><option value="dawn">🌅 Dawn</option><option value="noon">☀️ Noon</option><option value="dusk">🌇 Dusk</option><option value="midnight">🌙 Midnight</option></select></div>
+    </div>
+    <div><label class="il" style="display:block;margin-bottom:10px">Aura Color</label><div class="cgrid" id="cgrid"></div></div>
+    <div style="display:flex;gap:10px"><button class="btn btn-g" onclick="goStep(0)" style="flex:1">‹ Back</button><button class="btn btn-p" onclick="goStep(2)" style="flex:2">Continue ›</button></div>
+  </div>
+  <div class="dstep" id="ds2">
+    <div><div class="stitle">Core Personality</div><div class="ssub">Choose exactly 3 traits that define your companion forever</div></div>
+    <div style="text-align:right;font-size:var(--fb1);font-weight:700;color:var(--acc2)" id="trc">0 / 3 selected</div>
+    <div class="trgrid" id="trgrid"></div>
+    <div style="display:flex;gap:10px"><button class="btn btn-g" onclick="goStep(1)" style="flex:1">‹ Back</button><button class="btn btn-p" onclick="goStep(3)" id="cbtn" style="flex:2" disabled>Continue ›</button></div>
+  </div>
+  <div class="dstep" id="ds3">
+    <div><div class="stitle">Personalize</div><div class="ssub">Make them uniquely yours</div></div>
+    <div class="personalize-wrap">
+      <div class="pers-preview"><div class="pers-preview-svg" id="dpv-svg"></div><div id="dpv-name" style="font-family:var(--fd);font-style:italic;font-size:var(--fb1);color:var(--acc2)"></div></div>
+      <div class="pers-controls">
+        <div><div class="pers-sec-t">🎨 Body</div><div class="cgrid" id="dbc"></div></div>
+        <div><div class="pers-sec-t">✨ Accent</div><div class="cgrid" id="dac"></div></div>
+        <div><div class="pers-sec-t">👁️ Eyes</div><div class="mkgrid" id="deye"></div></div>
+        <div><div class="pers-sec-t">🖌️ Markings</div><div class="mkgrid" id="dmrk"></div></div>
+        <div><div class="pers-sec-t">👑 Accessory</div><div class="acgrid" id="dacc"></div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-g" onclick="goStep(2)" style="flex:1">‹ Back</button><button class="btn btn-p" onclick="createPet()" style="flex:2">✦ Summon Companion</button></div>
+  </div>
+</div>
+
+<!-- MAIN — IMMERSIVE WORLD LAYOUT -->
+<div class="screen" id="screen-main">
+  <!-- Fixed gradient header -->
+  <div class="m-hdr">
+    <div class="m-user-info">
+      <div class="m-user-av" id="m-av">🧑</div>
+      <div><div class="m-user-name">Hello, <span id="mu"></span></div><div class="bond-row">🔥 Bond <span class="bond-lv" id="blv">0</span><span id="bdesc" style="font-size:var(--fsm);color:var(--muted)"></span></div></div>
+    </div>
+    <div class="hdr-btns"><div class="icon-btn" onclick="showJournal()">📖</div><div class="icon-btn" onclick="showSettings()">⚙️</div></div>
+  </div>
+
+  <div id="main-world-wrap">
+    <!-- PET STANDING IN THE WORLD — no glass box -->
+    <div id="pet-world-stage">
+      <div class="pet-aura"></div>
+      <div id="bond-fx-wrap"></div>
+      <div class="pet-3d-wrap" id="pet3d" onclick="petTap()"></div>
+      <div id="pet-floor-shadow"></div>
+      <div class="pet-nametag-row"><div class="pet-nametag" id="mpname"></div><div class="edit-pet-btn" onclick="showEditPet()" title="Customize">✏️</div></div>
+      <div class="mbubble" id="mbub">...</div>
+      <div class="pet-age" id="mage"></div>
+    </div>
+
+    <!-- SIDE INFO PANEL -->
+    <div id="side-info-panel">
+      <div class="glass stats-panel">
+        <div class="stat-row"><span class="sico">😊</span><span class="slbl">Happy</span><div class="sbar"><div class="sfill" id="sfh" style="background:linear-gradient(90deg,#f08030,#ffb347)"></div></div><span class="sval" id="svh"></span></div>
+        <div class="stat-row"><span class="sico">⚡</span><span class="slbl">Energy</span><div class="sbar"><div class="sfill" id="sfe" style="background:linear-gradient(90deg,#6dbe8a,#90d4a8)"></div></div><span class="sval" id="sve"></span></div>
+        <div class="stat-row"><span class="sico">🍎</span><span class="slbl">Hunger</span><div class="sbar"><div class="sfill" id="sfn" style="background:linear-gradient(90deg,#e05060,#f08090)"></div></div><span class="sval" id="svn"></span></div>
+      </div>
+      <div class="glass pers-sec"><div class="pers-title">✨ Active Traits</div><div class="ttags" id="mtraits"></div></div>
+      <div class="act-section">
+        <div class="act-label">Daily Care</div>
+        <div class="act-grid">
+          <div class="abtn" id="act-feed" onclick="doAction('feed')"><div class="abtn-ico">🍎</div><span class="abtn-lbl">Feed</span></div>
+          <div class="abtn" id="act-play" onclick="doAction('play')"><div class="abtn-ico">🎮</div><span class="abtn-lbl">Play</span></div>
+          <div class="abtn" id="act-sleep" onclick="doAction('sleep')"><div class="abtn-ico">😴</div><span class="abtn-lbl">Sleep</span></div>
+          <div class="abtn" id="act-train" onclick="doAction('train')"><div class="abtn-ico">⚡</div><span class="abtn-lbl">Train</span></div>
+        </div>
+        <div class="act-label" style="margin-top:5px">Grow Together</div>
+        <div class="act-row2">
+          <div class="abtn" onclick="openTalkIntro('normal')"><div class="abtn-ico">💬</div><span class="abtn-lbl">Talk</span></div>
+          <div class="abtn study-btn" onclick="openTalkIntro('study')"><div class="abtn-ico">📚</div><span class="abtn-lbl">Study</span></div>
+          <div class="abtn emo-btn" onclick="openTalkIntro('emotional')"><div class="abtn-ico">💛</div><span class="abtn-lbl">Feel</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Action picker popup — positioned near pet -->
+<div id="action-picker"></div>
+
+<!-- FULLSCREEN CHAT -->
+<div class="screen" id="screen-chat">
+  <div class="chat-hdr">
+    <span class="chat-back" onclick="backToMain()">←</span>
+    <div class="chat-hdr-pet" id="chdr-pet"></div>
+    <div class="chat-pet-info">
+      <div class="chat-pet-name" id="cname"></div>
+      <div class="chat-status-row"><span class="chat-pet-status" id="cstatus"></span><span id="cmbadge" style="display:none"></span></div>
+    </div>
+  </div>
+  <div class="chat-scroll" id="chat-scroll">
+    <div class="chat-msgs" id="cmsgs"></div>
+  </div>
+  <div class="chat-inp-wrap">
+    <div class="chat-inp-inner">
+      <input class="cinp" id="cinp" placeholder="Say something..." maxlength="200" onkeydown="if(event.key==='Enter'&&!event.shiftKey)sendMsg()">
+      <button class="csend" id="csend" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+</div>
+</div><!-- end #app -->
+
+<!-- TALK INTRO OVERLAY — AI Video Popup -->
+<div id="talk-intro">
+  <div class="tio-eyebrow" id="tio-eyebrow">Your companion is calling...</div>
+  <div class="tio-ring-wrap">
+    <div class="tio-ring" id="tio-ring">
+      <div class="tio-pet-svg" id="tio-pet"></div>
+    </div>
+    <div class="tio-live">● LIVE</div>
+  </div>
+  <div class="tio-speech-box"><span id="tio-text"></span><span class="tio-cursor" id="tio-cur">|</span></div>
+  <div class="tio-actions">
+    <button class="btn btn-g" onclick="closeTalkIntro()" style="padding:12px 24px">Not now</button>
+    <button class="btn btn-p" id="tio-go" onclick="goToChat()" style="padding:12px 28px;display:none">Start Chatting ›</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<div id="bond-lvup-backdrop"></div>
+
+<!-- BOND LEVEL UP POPUP -->
+<div id="bond-lvup-popup">
+  <div id="blvup-particles"></div>
+  <span class="blvup-icon" id="blvup-icon">💖</span>
+  <div class="blvup-title" id="blvup-title">Bond Level Up!</div>
+  <div class="blvup-badge" id="blvup-badge">Level 0</div>
+  <div class="blvup-label" id="blvup-label">A spark of connection</div>
+  <div class="blvup-unlock" id="blvup-unlock"></div>
+  <button class="blvup-btn" onclick="closeBondPopup()">✨ Amazing!</button>
+</div>
+  <script src="app.js"></script>
+</body>
+</html>
